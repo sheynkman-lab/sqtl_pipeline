@@ -1,0 +1,2 @@
+marker	chr	pos	rsid	effectallele	otherallele	eaf	beta	se	p	z	imputersq	n	end	chr2	V1	V2	V3	marker_1	marker_2	marker_3	marker_4	marker_hg38
+18:8809445:G:C	18	8809445	rs632423	C	G	0.3294	0.0577	0.0105	4.444e-08	5.49524	NA	260000	8809446	chr18	chr18	8809447	8809448	18	8809445	G	C	18:8809447:G:C
