@@ -48,7 +48,7 @@ def get_variant_ids(junction_ids, splice_graph):
 
 #     return sqtl_junctions
 
-def get_sqtl_junctions(sg, phenotype_cluster):
+def get_filtered_phenotypes(sg, phenotype_cluster):
     """
     This function takes in the moloc_snp_data, gwas_snp_data, and splice_graph dataframes as arguments, and returns
     a list of all junctions in the splice graph that have the phenotype cluster and GWAS SNP specified in the prompt.
@@ -61,27 +61,20 @@ def get_sqtl_junctions(sg, phenotype_cluster):
         chrom, start, end, cluster, strand = parse_junction_id(junction_id)
         parsed_id = str(chrom) + ':' + str(start) + ':' + str(end) + ':' + str(cluster) + '_' + strand
         if 'sqtl_data' in sg.edges[junction_id] and cluster == phenotype_cluster:
-            
-            sqtl_data = sg.edges[junction_id]['sqtl_data']
-            if 'variant_id' in sqtl_data:
-                sqtl_variant_id = sqtl_data['variant_id']
-                if parsed_id in sg.vertices:
-                    sqtl_junctions.append(junction_id)
-
+            sqtl_junctions.append(junction_id)
     return sqtl_junctions
 
 
-
 def get_filtered_sqtl_junctions(sg, filtered_junctions, variant_id_str, max_pval_nominal):
-
     filtered_sqtl_junctions = []
     for junction_id in filtered_junctions:
-        print("Junction id :", junction_id)
         if 'sqtl_data' in sg.edges[junction_id]:
             sqtl_data = sg.edges[junction_id]['sqtl_data']
-            print( "sqtl data :", sqtl_data)
-            if sqtl_data['variant_id'].find(variant_id_str) != -1 and sqtl_data['pval_nominal'] <= max_pval_nominal:
-                filtered_sqtl_junctions.append((junction_id, sqtl_data))
+            for phenotype_id in sqtl_data:
+                for data_dict in sqtl_data[phenotype_id]:
+                    # print(f"variant_id: {data_dict['variant_id']}")
+                    if data_dict['variant_id'] == variant_id_str and float(data_dict['pval_nominal']) <= float(max_pval_nominal):
+                        filtered_sqtl_junctions.append(data_dict)
     return filtered_sqtl_junctions
 
 
@@ -96,6 +89,7 @@ def print_sqtl_data(sg, junction_id):
                 print("")
     else:
         print("No SQTL data for this junction ID.")
+
 
 
 
