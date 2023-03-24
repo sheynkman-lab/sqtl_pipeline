@@ -70,7 +70,7 @@ class SpliceGraph:
             
     #     self.edges[junction_id]['sqtl_data'][phenotype_id].append(sqtl_dict)
 
-    
+
     def add_junction(self, sqtl_data):
         phenotype_id = sqtl_data['phenotype_id']
         donor_vertex = f"{phenotype_id}_d"
@@ -99,7 +99,6 @@ class SpliceGraph:
         self.edges[junction_vertex]['sqtl_data'][phenotype_id].append(sqtl_data)
 
         
-
     def generate_splice_graph(self):
         nodes = []
         edges = []
