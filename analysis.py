@@ -50,28 +50,26 @@ def get_variant_ids(junction_ids, splice_graph):
 
 def get_sqtl_junctions(sg, phenotype_cluster):
     """
-        This function takes in the moloc_snp_data, gwas_snp_data, and splice_graph dataframes as arguments, and returns
-        a list of all junctions in the splice graph that have the phenotype cluster and GWAS SNP specified in the prompt.
+    This function takes in the moloc_snp_data, gwas_snp_data, and splice_graph dataframes as arguments, and returns
+    a list of all junctions in the splice graph that have the phenotype cluster and GWAS SNP specified in the prompt.
 
-        Note that the function assumes that the phenotype_id and snp_id fields in the moloc_snp_data and gwas_snp_data
-        dataframes respectively are unique. If this is not the case, the function may not return the desired result.
+    Note that the function assumes that the phenotype_id and snp_id fields in the moloc_snp_data and gwas_snp_data
+    dataframes respectively are unique. If this is not the case, the function may not return the desired result.
     """
     sqtl_junctions = []
     for junction_id in sg.edges:
         chrom, start, end, cluster, strand = parse_junction_id(junction_id)
         parsed_id = str(chrom) + ':' + str(start) + ':' + str(end) + ':' + str(cluster) + '_' + strand
         if 'sqtl_data' in sg.edges[junction_id] and cluster == phenotype_cluster:
-            #TODO: Fix errror here finding 'variant_id'
-            sqtl_variant_id = sg.edges[junction_id]['sqtl_data']['variant_id']
-            if parsed_id in sg.vertices:
-                sqtl_junction_data = {'junction_id': junction_id, 'sqtl_data': []}
-                for edge in sg.vertices[parsed_id]['edges']:
-                    if 'sqtl_data' in sg.edges[edge] and sg.edges[edge]['sqtl_data']['variant_id'] == sqtl_variant_id:
-                        sqtl_data = sg.edges[edge]['sqtl_data']
-                        sqtl_junction_data['sqtl_data'].append(sqtl_data)
-                sqtl_junctions.append(sqtl_junction_data)
+            
+            sqtl_data = sg.edges[junction_id]['sqtl_data']
+            if 'variant_id' in sqtl_data:
+                sqtl_variant_id = sqtl_data['variant_id']
+                if parsed_id in sg.vertices:
+                    sqtl_junctions.append(junction_id)
 
     return sqtl_junctions
+
 
 
 def get_filtered_sqtl_junctions(sg, filtered_junctions, variant_id_str, max_pval_nominal):
@@ -87,6 +85,17 @@ def get_filtered_sqtl_junctions(sg, filtered_junctions, variant_id_str, max_pval
     return filtered_sqtl_junctions
 
 
+def print_sqtl_data(sg, junction_id):
+    if 'sqtl_data' in sg.edges[junction_id]:
+        sqtl_data = sg.edges[junction_id]['sqtl_data']
+        for phenotype_id in sqtl_data:
+            print(f"SQTL data for phenotype ID {phenotype_id}:")
+            for data_dict in sqtl_data[phenotype_id]:
+                for key, value in data_dict.items():
+                    print(f"{key}: {value}")
+                print("")
+    else:
+        print("No SQTL data for this junction ID.")
 
 
 

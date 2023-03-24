@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from splice_graph import SpliceGraph
 from helpers import read_leafcutter_sQTL_file, read_gwas_snp_file, read_moloc_sqtl_file
-from analysis import get_sqtl_junctions, get_filtered_sqtl_junctions
+from analysis import get_sqtl_junctions, get_filtered_sqtl_junctions, print_sqtl_data
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze splice junctions and GWAS SNPs')
@@ -61,6 +61,9 @@ def main():
     max_pval_nominal = 0.05
     filtered_sqtl_junctions = get_filtered_sqtl_junctions (sg, filtered_junctions, marker, max_pval_nominal)
     print(filtered_sqtl_junctions)
+
+
+    print_sqtl_data(sg, '18:8720496:8762078:clu_2297_+')
 
     # df = pd.DataFrame(filtered_junctions)
     # df.to_csv(f'trial.csv', sep='\t', index=False)
