@@ -2,6 +2,8 @@
 
 from collections import Counter, defaultdict
 from argparse import ArgumentParser, FileType
+from sys import stderr, exit
+import csv
 
 def extract_splice_sites(gtf_file):
     genes = defaultdict(list)
@@ -62,11 +64,21 @@ def extract_splice_sites(gtf_file):
             junctions.setdefault(junction, set()).add(transcript_id)
 
     junctions = sorted(junctions.items())
-    for junction, transcript_ids in junctions:
-        chrom, left, right, strand = junction
-        # Zero-based offset
-        print('{}\t{}\t{}\t{}\t{}'.format(chrom, left-1, right-1, strand, ','.join(transcript_ids)))
-
+    # for junction, transcript_ids in junctions:
+    #     chrom, left, right, strand = junction
+    #     # Zero-based offset
+    #     print('{}\t{}\t{}\t{}\t{}'.format(chrom, left-1, right-1, strand, ','.join(transcript_ids)))
+    # Open the CSV file in write mode and create a CSV writer object
+    with open(f'junctions.csv', mode='w', newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        # Write the header row to the CSV file
+        writer.writerow(['chrom', 'left', 'right', 'strand', 'transcript_ids'])
+        
+        # Write each junction to the CSV file
+        for junction, transcript_ids in junctions:
+            chrom, left, right, strand = junction
+            writer.writerow([chrom, left-1, right-1, strand, ','.join(transcript_ids)])
 
     exon_lengths, intron_lengths, trans_lengths = \
         Counter(), Counter(), Counter()
@@ -114,3 +126,4 @@ if __name__ == '__main__':
         parser.print_help()
         exit(1)
     extract_splice_sites(args.gtf_file)
+
