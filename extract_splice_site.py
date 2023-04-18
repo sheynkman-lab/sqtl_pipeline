@@ -5,7 +5,7 @@ from argparse import ArgumentParser, FileType
 from sys import stderr, exit
 import csv
 
-def extract_splice_sites(gtf_file):
+def extract_splice_sites_gtf(gtf_file):
     genes = defaultdict(list)
     trans = {}
 
@@ -69,7 +69,7 @@ def extract_splice_sites(gtf_file):
     #     # Zero-based offset
     #     print('{}\t{}\t{}\t{}\t{}'.format(chrom, left-1, right-1, strand, ','.join(transcript_ids)))
     # Open the CSV file in write mode and create a CSV writer object
-    with open(f'junctions.csv', mode='w', newline='') as csv_file:
+    with open(f'junctions_gtf.csv', mode='w', newline='') as csv_file:
         writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
         # Write the header row to the CSV file
@@ -113,17 +113,48 @@ def extract_splice_sites(gtf_file):
             file=stderr)
 
 
+def extract_splice_sites_lc(lc_file):
+
+    # Open the sqtl file in read mode and create a CSV reader object
+    with open(f'data/MTCL1/MTCL1_QTL_results.tsv') as tsv_file:
+        reader = csv.reader(tsv_file, delimiter='\t')
+        next(reader)  # Skip the header row
+
+        # Open the CSV file in write mode and create a CSV writer object
+        with open(f'junctions_lc.csv', mode='w', newline='') as csv_file:
+            writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+            # Write the header row to the CSV file
+            writer.writerow(['chrom', 'start', 'stop', 'strand'])
+
+            # Iterate over each row in the sqtl file
+            for row in reader:
+                phenotype_id = row[0]
+                variant_id = row[1]
+                tss_distance = row[2]
+                # Extract the chromosome, strand, and exon coordinates from the phenotype_id
+                chrom, acceptor, donor, clu_strand = phenotype_id.split(':')
+                cluster = clu_strand.split('_')[1]
+                strand = clu_strand.split('_')[2]
+                # Write the chromosome, acceptor, donor, and strand to the CSV file
+                writer.writerow([chrom, acceptor, donor, strand])
+
+
 if __name__ == '__main__':
     parser = ArgumentParser(
-        description='Extract splice junctions from a GTF file')
+        description='Extract splice junctions from a GTF and LeafCutter files')
     parser.add_argument('gtf_file',
         nargs='?',
         type=FileType('r'),
         help='input GTF file (use "-" for stdin)')
+    parser.add_argument('lc_file',
+        nargs='?',
+        type=FileType('r'),
+        help='input LeafCutter file (use "-" for stdin)')    
 
     args = parser.parse_args()
     if not args.gtf_file:
         parser.print_help()
         exit(1)
-    extract_splice_sites(args.gtf_file)
-
+    extract_splice_sites_gtf(args.gtf_file)
+    extract_splice_sites_lc(args.lc_file)
