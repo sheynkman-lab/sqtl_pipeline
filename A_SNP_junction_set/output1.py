@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 from helpers import read_leafcutter_sQTL_file, read_moloc_sqtl_file
 import logging

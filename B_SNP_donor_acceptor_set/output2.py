@@ -5,10 +5,11 @@ from argparse import ArgumentParser, FileType
 from sys import stderr, exit
 import csv
 
+
 def extract_splice_sites_gtf(gtf_file):
     genes = defaultdict(list)
     trans = {}
-
+    splicesites = []
     # Parse valid exon lines from the GTF file into a dict by transcript_id
     for line in gtf_file:
         line = line.strip()
@@ -64,59 +65,73 @@ def extract_splice_sites_gtf(gtf_file):
             junctions.setdefault(junction, set()).add(transcript_id)
 
     junctions = sorted(junctions.items())
-    # for junction, transcript_ids in junctions:
-    #     chrom, left, right, strand = junction
-    #     # Zero-based offset
-    #     print('{}\t{}\t{}\t{}\t{}'.format(chrom, left-1, right-1, strand, ','.join(transcript_ids)))
-    # Open the CSV file in write mode and create a CSV writer object
+
     with open(f'junctions_gtf.csv', mode='w', newline='') as csv_file:
         writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
         # Write the header row to the CSV file
-        writer.writerow(['chrom', 'left', 'right', 'strand', 'transcript_ids'])
+        #writer.writerow(['chrom', 'left', 'right', 'strand', 'matched_transcripts'])
+        writer.writerow(['splicesite_coord', 'strand', 'splicesite_category', 'matched_transcripts'])
         
         # Write each junction to the CSV file
         for junction, transcript_ids in junctions:
             chrom, left, right, strand = junction
-            writer.writerow([chrom, left-1, right-1, strand, ','.join(transcript_ids)])
+            left, right = left -1, right -1
+            if strand == '-':
+                donor2 = str(chrom) + '_' + str(left-2) 
+                donor1 = str(chrom) + '_' + str(left-1)
+                acceptor1 = str(chrom) + '_' + str(right+1)
+                acceptor2 = str(chrom) + '_' + str(right+2)
+            else:
+                donor1 = left+1
+                donor2 = left+2
+                acceptor1 = right-2 
+                acceptor2 = right+1.
 
-    exon_lengths, intron_lengths, trans_lengths = \
-        Counter(), Counter(), Counter()
-    for chrom, strand, exons in trans.values():
-        tran_len = 0
-        for i, exon in enumerate(exons):
-            exon_len = exon[1]-exon[0]+1
-            exon_lengths[exon_len] += 1
-            tran_len += exon_len
-            if i == 0:
-                continue
-            intron_lengths[exon[0] - exons[i-1][1]] += 1
-        trans_lengths[tran_len] += 1
+            writer.writerow([donor2, strand, 'donor2', ','.join(transcript_ids)])
+            writer.writerow([donor1, strand, 'donor1', None])
+            writer.writerow([acceptor1, strand, 'acceptor1', None])
+            writer.writerow([acceptor2, strand, 'acceptor2', None])
+        
+            #writer.writerow([chrom, left-1, right-1, strand, ','.join(transcript_ids)])
 
-
-    print('genes: {}, genes with multiple isoforms: {}'.format(
-            len(genes), sum(len(v) > 1 for v in genes.values())),
-            file=stderr)
-    print('transcripts: {}, transcript avg. length: {:.0f}'.format(
-            len(trans), sum(trans_lengths.elements())//len(trans)),
-            file=stderr)
-    print('exons: {}, exon avg. length: {:.0f}'.format(
-            sum(exon_lengths.values()),
-            sum(exon_lengths.elements())//sum(exon_lengths.values())),
-            file=stderr)
-    print('introns: {}, intron avg. length: {:.0f}'.format(
-            sum(intron_lengths.values()),
-            sum(intron_lengths.elements())//sum(intron_lengths.values())),
-            file=stderr)
-    print('average number of exons per transcript: {:.0f}'.format(
-            sum(exon_lengths.values())//len(trans)),
-            file=stderr)
+    # exon_lengths, intron_lengths, trans_lengths = \
+    #     Counter(), Counter(), Counter()
+    # for chrom, strand, exons in trans.values():
+    #     tran_len = 0
+    #     for i, exon in enumerate(exons):
+    #         exon_len = exon[1]-exon[0]+1
+    #         exon_lengths[exon_len] += 1
+    #         tran_len += exon_len
+    #         if i == 0:
+    #             continue
+    #         intron_lengths[exon[0] - exons[i-1][1]] += 1
+    #     trans_lengths[tran_len] += 1
 
 
-def extract_splice_sites_lc(lc_file):
+    # print('genes: {}, genes with multiple isoforms: {}'.format(
+    #         len(genes), sum(len(v) > 1 for v in genes.values())),
+    #         file=stderr)
+    # print('transcripts: {}, transcript avg. length: {:.0f}'.format(
+    #         len(trans), sum(trans_lengths.elements())//len(trans)),
+    #         file=stderr)
+    # print('exons: {}, exon avg. length: {:.0f}'.format(
+    #         sum(exon_lengths.values()),
+    #         sum(exon_lengths.elements())//sum(exon_lengths.values())),
+    #         file=stderr)
+    # print('introns: {}, intron avg. length: {:.0f}'.format(
+    #         sum(intron_lengths.values()),
+    #         sum(intron_lengths.elements())//sum(intron_lengths.values())),
+    #         file=stderr)
+    # print('average number of exons per transcript: {:.0f}'.format(
+    #         sum(exon_lengths.values())//len(trans)),
+    #         file=stderr)
+
+
+def extract_splice_sites_lc():
 
     # Open the sqtl file in read mode and create a CSV reader object
-    with open(f'data/MTCL1/MTCL1_QTL_results.tsv') as tsv_file:
+    with open(f'../data/MTCL1/MTCL1_QTL_results.tsv') as tsv_file:
         reader = csv.reader(tsv_file, delimiter='\t')
         next(reader)  # Skip the header row
 
@@ -146,15 +161,13 @@ if __name__ == '__main__':
     parser.add_argument('gtf_file',
         nargs='?',
         type=FileType('r'),
-        help='input GTF file (use "-" for stdin)')
-    parser.add_argument('lc_file',
-        nargs='?',
-        type=FileType('r'),
-        help='input LeafCutter file (use "-" for stdin)')    
+        help='input GTF file (use "-" for stdin)') 
 
     args = parser.parse_args()
     if not args.gtf_file:
         parser.print_help()
         exit(1)
     extract_splice_sites_gtf(args.gtf_file)
-    extract_splice_sites_lc(args.lc_file)
+    extract_splice_sites_lc()
+
+
