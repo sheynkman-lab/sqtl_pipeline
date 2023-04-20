@@ -13,63 +13,6 @@ class SpliceGraph:
             self.edges[v] = {}
         self.edges[u][v] = True
         self.edges[v][u] = True
-    
-    # def add_junction(self, sqtl_data):
-    #     # populate junction information
-    #     phenotype_id = sqtl_data['phenotype_id']
-    #     variant_id = sqtl_data['variant_id']
-    #     tss_distance = int(sqtl_data['tss_distance'])
-    #     maf = float(sqtl_data['maf'])
-    #     ma_samples = int(sqtl_data['ma_samples'])
-    #     ma_count = int(sqtl_data['ma_count'])
-    #     pval_nominal = float(sqtl_data['pval_nominal'])
-    #     slope = float(sqtl_data['slope'])
-    #     slope_se = float(sqtl_data['slope_se'])
-
-    #     junction_name = phenotype_id
-    #     junction_strand = junction_name[-1]
-    #     junction_coords = tuple(map(int, junction_name.split(':')[1:-1]))
-
-    #     # add donor and acceptor site vertices
-    #     donor_site = junction_coords[0] - tss_distance
-    #     acceptor_site = junction_coords[-1] - tss_distance
-    #     donor_vertex = f'{junction_name}_{donor_site}_{acceptor_site}_d'
-    #     acceptor_vertex = f'{junction_name}_{donor_site}_{acceptor_site}_a'
-    #     self.vertices[donor_vertex] = {'cluster': ''}
-    #     self.vertices[acceptor_vertex] = {'cluster': ''}
-    #     self.edges[donor_vertex] = {}
-    #     self.edges[acceptor_vertex] = {}
-
-    #     # add junction vertex
-    #     junction_start, junction_end = junction_coords[0], junction_coords[-1]
-    #     junction_id = f'{junction_name}'
-    #     self.vertices[junction_id] = {'cluster': ''}
-    #     self.edges[junction_id] = {}
-
-    #     # connect donor and acceptor site vertices to junction vertex
-    #     self.add_edge(donor_vertex, junction_id)
-    #     self.add_edge(junction_id, acceptor_vertex)
-
-    #     # add SQTL information to junction vertex
-    #     sqtl_dict = {
-    #         'variant_id': variant_id,
-    #         'tss_distance': tss_distance,
-    #         'maf': maf,
-    #         'ma_samples': ma_samples,
-    #         'ma_count': ma_count,
-    #         'pval_nominal': pval_nominal,
-    #         'slope': slope,
-    #         'slope_se': slope_se
-    #     }
-        
-    #     if 'sqtl_data' not in self.edges[junction_id]:
-    #         self.edges[junction_id]['sqtl_data'] = {}
-        
-    #     if phenotype_id not in self.edges[junction_id]['sqtl_data']:
-    #         self.edges[junction_id]['sqtl_data'][phenotype_id] = []
-            
-    #     self.edges[junction_id]['sqtl_data'][phenotype_id].append(sqtl_dict)
-
 
     def add_junction(self, sqtl_data):
         phenotype_id = sqtl_data['phenotype_id']
