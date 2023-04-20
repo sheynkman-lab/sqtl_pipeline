@@ -160,3 +160,6 @@ toy-scripts
 
 # Pickle file
 .pickle
+
+.log
+.DS_Store

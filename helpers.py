@@ -4,25 +4,6 @@
 # from my_tool.gwas_sno import GWASSNO, read_gwas_snps
 
 
-def read_gtf(filename):
-    ...
-
-
-def get_exon_boundaries(gtf):
-    ...
-
-
-def is_exon(chrom, pos, exon_boundaries):
-    ...
-
-
-def get_gene_name(chrom, pos, gtf):
-    ...
-
-
-def check_snp_in_junctions(sg, snp_chrom, snp_pos):
-    ...
-
 
 def read_gwas_snp_file(file_path):
     """
