@@ -28,26 +28,6 @@ def get_variant_ids(junction_ids, splice_graph):
         variant_ids.append(splice_graph.edges[jx_id]['sqtl_data']['variant_id'])
     return variant_ids
 
-
-# def get_sqtl_junctions(sg, phenotype_cluster):
-#     """
-#         This function takes in the moloc_snp_data, gwas_snp_data, and splice_graph dataframes as arguments, and returns
-#         a list of all junctions in the splice graph that have the phenotype cluster and GWAS SNP specified in the prompt.
-
-#         Note that the function assumes that the phenotype_id and snp_id fields in the moloc_snp_data and gwas_snp_data
-#         dataframes respectively are unique. If this is not the case, the function may not return the desired result.
-#     """
-#     sqtl_junctions = []
-#     for junction_id in sg.edges:
-#         chrom, start, end, cluster, strand = parse_junction_id(junction_id)
-#         parsed_id = str(chrom) + ':' + str(start) + ':' + str(end) + ':' + str(cluster) + '_' + strand
-#         if 'sqtl_data' in sg.edges[junction_id] and cluster == phenotype_cluster:
-#             sqtl_variant_id = sg.edges[junction_id]['sqtl_data']['variant_id']
-#             if parsed_id in sg.vertices:
-#                 sqtl_junctions.append((junction_id))
-
-#     return sqtl_junctions
-
 def get_filtered_phenotypes(sg, phenotype_cluster):
     """
     This function takes in the moloc_snp_data, gwas_snp_data, and splice_graph dataframes as arguments, and returns
