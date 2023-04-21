@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 
 from collections import Counter, defaultdict
-from argparse import ArgumentParser, FileType
 from sys import stderr, exit
 import csv
 
 
 def extract_splice_sites_gtf(gtf_file):
+    """
+    Extracts splice site information GTF annotation file.
+    From rHISAT
+
+    Args:
+        gtf_file (str): Path to the GTF annotation file.
+
+    Returns:
+        None. Writes the annotated splice sites to a CSV file.
+    """
+
     genes = defaultdict(list)
     trans = {}
     splicesites = []
@@ -57,6 +67,7 @@ def extract_splice_sites_gtf(gtf_file):
         trans[tran] = [chrom, strand, tmp_exons]
 
     # Calculate and print the unique junctions and associated transcript IDs
+    #TODO: Add sanity check for junctions/splicesites etc. etc.
     junctions = {}
     for chrom, strand, exons in trans.values():
         for i in range(1, len(exons)):
@@ -65,11 +76,10 @@ def extract_splice_sites_gtf(gtf_file):
             junctions.setdefault(junction, set()).add(transcript_id)
 
     junctions = sorted(junctions.items())
-    with open(f'junctions_gtf.csv', mode='w', newline='') as csv_file:
+    with open(f'B_SNP_donor_acceptor_set/splice_sites_gtf.csv', mode='w', newline='') as csv_file:
         writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
         # Write the header row to the CSV file
-        #writer.writerow(['chrom', 'left', 'right', 'strand', 'matched_transcripts'])
         writer.writerow(['splicesite_coord', 'strand', 'splicesite_category', 'matched_transcripts'])
         
         # Write each junction to the CSV file
@@ -82,18 +92,16 @@ def extract_splice_sites_gtf(gtf_file):
                 acceptor1 = str(chrom) + '_' + str(right+1)
                 acceptor2 = str(chrom) + '_' + str(right+2)
             else:
-                donor1 = left+1
-                donor2 = left+2
-                acceptor1 = right-2 
-                acceptor2 = right+1.
+                donor1 = str(chrom) + '_' + str(left+1)
+                donor2 = str(chrom) + '_' + str(left+2)
+                acceptor1 = str(chrom) + '_' + str(right-2) 
+                acceptor2 = str(chrom) + '_' + str(right+1)
 
             writer.writerow([donor2, strand, 'donor2', ','.join(transcript_ids)])
             writer.writerow([donor1, strand, 'donor1', None])
             writer.writerow([acceptor1, strand, 'acceptor1', None])
             writer.writerow([acceptor2, strand, 'acceptor2', None])
         
-            #writer.writerow([chrom, left-1, right-1, strand, ','.join(transcript_ids)])
-
     # exon_lengths, intron_lengths, trans_lengths = \
     #     Counter(), Counter(), Counter()
     # for chrom, strand, exons in trans.values():
@@ -127,46 +135,44 @@ def extract_splice_sites_gtf(gtf_file):
     #         file=stderr)
 
 
-def extract_splice_sites_lc():
+def extract_splice_sites_lc(sqtl_list):
+    """
+    Extracts splice site information from a list of dictionaries containing sQTL data from LeafCutter.
 
-    # Open the sqtl file in read mode and create a CSV reader object
-    with open(f'../data/MTCL1/MTCL1_QTL_results.tsv') as tsv_file:
-        reader = csv.reader(tsv_file, delimiter='\t')
-        next(reader)  # Skip the header row
+    Args:
+        sqtl_list (list): List of dictionaries containing sQTL data.
 
-        # Open the CSV file in write mode and create a CSV writer object
-        with open(f'junctions_lc.csv', mode='w', newline='') as csv_file:
-            writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    Returns:
+        None. Writes the annotated splice sites to a CSV file.
+    """
+    with open(f'B_SNP_donor_acceptor_set/splice_sites_lc.csv', mode='w', newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        # Write the header row to the CSV file
+        writer.writerow(['splicesite_coord', 'strand', 'splicesite_category'])
+        
+        # Iterate over each row in the sqtl list
+        for row_dict in sqtl_list:
+            phenotype_id = row_dict['phenotype_id']
+            tss_distance = row_dict['tss_distance']
+            chrom, acceptor, donor, clu_strand = phenotype_id.split(':')
+            acceptor, donor = int(acceptor), int(donor)
+            cluster = clu_strand.split('_')[1]
+            strand = clu_strand.split('_')[2]
+            if strand == '-':
+                donor2 = 'chr' + str(chrom) + '_' + str(acceptor-2) 
+                donor1 = 'chr' + str(chrom) + '_' + str(acceptor-1)
+                acceptor1 = 'chr' + str(chrom) + '_' + str(donor+1)
+                acceptor2 = 'chr' + str(chrom) + '_' + str(donor+2)
+            else:
+                donor1 = 'chr' + str(chrom) + '_' + str(acceptor+1)
+                donor2 = 'chr' + str(chrom) + '_' + str(acceptor+2)
+                acceptor1 = 'chr' + str(chrom) + '_' + str(donor-2) 
+                acceptor2 = 'chr' + str(chrom) + '_' + str(donor+1)
+            writer.writerow([donor2, strand, 'donor2'])
+            writer.writerow([donor1, strand, 'donor1'])
+            writer.writerow([acceptor1, strand, 'acceptor1'])
+            writer.writerow([acceptor2, strand, 'acceptor2'])
 
-            # Write the header row to the CSV file
-            writer.writerow(['chrom', 'start', 'stop', 'strand'])
-
-            # Iterate over each row in the sqtl file
-            for row in reader:
-                phenotype_id = row[0]
-                variant_id = row[1]
-                tss_distance = row[2]
-                # Extract the chromosome, strand, and exon coordinates from the phenotype_id
-                chrom, acceptor, donor, clu_strand = phenotype_id.split(':')
-                cluster = clu_strand.split('_')[1]
-                strand = clu_strand.split('_')[2]
-                # Write the chromosome, acceptor, donor, and strand to the CSV file
-                writer.writerow([chrom, acceptor, donor, strand])
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser(
-        description='Extract splice junctions from a GTF and LeafCutter files')
-    parser.add_argument('gtf_file',
-        nargs='?',
-        type=FileType('r'),
-        help='input GTF file (use "-" for stdin)') 
-
-    args = parser.parse_args()
-    if not args.gtf_file:
-        parser.print_help()
-        exit(1)
-    extract_splice_sites_gtf(args.gtf_file)
-    extract_splice_sites_lc()
-
-
+# def snp_disrupts_splice_sites():
+#     sdf

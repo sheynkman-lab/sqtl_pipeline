@@ -78,6 +78,6 @@ def get_snp_junctions(snp_file_path, leafcutter_file_path, ):
                     writer.writerow(['', phenotype_id, strand, pval_nominal, slope])
 
 
-    return snp_junctions
+    return leafcutter_list, snp_junctions
 
 					
