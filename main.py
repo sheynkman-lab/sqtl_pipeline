@@ -5,10 +5,7 @@ import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 from A_SNP_junction_set.output1 import get_snp_junctions
-<<<<<<< HEAD
 from B_SNP_donor_acceptor_set.output2 import extract_splice_sites_gtf
-=======
->>>>>>> 86ea07e4b4849f56dd891effd0e6a264801344c3
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze splice junctions and GWAS SNPs')
@@ -23,13 +20,10 @@ def main():
 
     # Function call for Output 1 tasks
     snp_junctions = get_snp_junctions(args.moloc_snp_file, args.junction_file)
-<<<<<<< HEAD
 
     #Function call for Output 2 tasks
     # 1. Identify spplice sites
     extract_splice_sites_gtf(args.gtf_file)
-=======
->>>>>>> 86ea07e4b4849f56dd891effd0e6a264801344c3
 
 if __name__ == '__main__':
     main()

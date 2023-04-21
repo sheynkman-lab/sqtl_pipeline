@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 #!/usr/bin/env python3
-=======
->>>>>>> 86ea07e4b4849f56dd891effd0e6a264801344c3
 
 from helpers import read_leafcutter_sQTL_file, read_moloc_sqtl_file
 import logging
