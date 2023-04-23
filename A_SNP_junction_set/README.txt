@@ -1,6 +1,6 @@
 Input
-To determine the junction set, this process requires the following:
-1) Leafcutter sQTL results file: This file provides the sQTLs of interest, which contains the necessary junctions to generate the junction set.
+To determine the junction set for each SNP, this process requires the following inputs:
+1) Leafcutter sQTL results file: This file provides the sQTLs of interest, which contains the necessary junctions of interest.
 2) set of colocalized user-specified SNPs: This file contains the SNP used to run leafcutter and generate the first input file above.
 3) alpha (p-value threshold): The default threshold is 0.05 but can be adjusted by the user to a custom value.
 
