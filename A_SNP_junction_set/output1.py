@@ -1,17 +1,14 @@
-#!/usr/bin/env python3
-
-from helpers import read_leafcutter_sQTL_file, read_moloc_sqtl_file
-import logging
+#!/usr/bin/env python
 import csv
 
-def get_snp_junctions(snp_file_path, leafcutter_file_path, ):
+def get_snp_junctions(snp_list, leafcutter_list):
     """
     Given a file with colocalized SNPs and a file with LeafCutter sQTL data, returns a dictionary where the key is the SNP
     coordinate and the value is a list of dictionaries containing junction info from LeafCutter sQTL file.
 
     Args:
-        snp_file_path (str): Path to the file with colocalized SNPs (from args).
-        leafcutter_file_path (str): Path to the file with LeafCutter sQTL data (from).
+        snp_list (list): List of colocalized SNPs.
+        leafcutter_list (list): List of LeafCutter sQTL data.
 
     Returns:
         Filtered SNP junctions dictionary.
@@ -20,13 +17,7 @@ def get_snp_junctions(snp_file_path, leafcutter_file_path, ):
         An intermediate CSV file containing the filtered junctions (snp_junctions.csv).
     """
     
-    # Read the colocalized SNP file
-    snp_list = read_moloc_sqtl_file(snp_file_path)
-    logging.info(f'Read {len(snp_list)} SNPs from {snp_file_path}')
-
-    # Read the LeafCutter sQTL file
-    leafcutter_list = read_leafcutter_sQTL_file(leafcutter_file_path)
-    logging.info(f'Read {len(leafcutter_list)} junctions from {leafcutter_file_path}')
+    
 
     # Create a dictionary to store the junctions containing each SNP
     snp_junctions = {}
@@ -56,7 +47,7 @@ def get_snp_junctions(snp_file_path, leafcutter_file_path, ):
         
         # initialize a flag for first row
         first_row = True
-
+        jx_set = []
         # iterate through the dictionary and write rows
         for snp_coord, junctions_info in snp_junctions.items():
             # split the SNP coordinate to get chromosome and position
@@ -73,11 +64,12 @@ def get_snp_junctions(snp_file_path, leafcutter_file_path, ):
                 # write the variant_id only for the first row for a given variant_id
                 if first_row:
                     writer.writerow([variant_id, phenotype_id, strand, pval_nominal, slope])
+                    jx_set.append([variant_id, phenotype_id, strand, pval_nominal, slope])
                     first_row = False
                 else:
                     writer.writerow(['', phenotype_id, strand, pval_nominal, slope])
+                    jx_set.append(['', phenotype_id, strand, pval_nominal, slope])
 
-
-    return leafcutter_list, snp_junctions
+    return jx_set
 
 					

@@ -4,9 +4,10 @@ import argparse
 from argparse import ArgumentParser, FileType
 import logging
 import pandas as pd
+from helpers import read_leafcutter_sQTL_file, read_moloc_sqtl_file
 import matplotlib.pyplot as plt
 from A_SNP_junction_set.output1 import get_snp_junctions
-from B_SNP_donor_acceptor_set.output2 import extract_splice_sites_gtf, extract_splice_sites_lc
+from B_SNP_donor_acceptor_set.output2 import extract_splice_sites_gtf, extract_splice_sites_lc, snp_disrupts_splice_sites
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze splice junctions and GWAS SNPs')
@@ -19,16 +20,24 @@ def main():
     # set up logging configuration
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', filename='output.log', filemode='w')
 
+    # Read the colocalized SNP file
+    snp_list = read_moloc_sqtl_file(args.moloc_snp_file)
+    logging.info(f'Read {len(snp_list)} SNPs from {args.moloc_snp_file}')
+
+    # Read the LeafCutter sQTL file
+    leafcutter_list = read_leafcutter_sQTL_file(args.junction_file)
+    logging.info(f'Read {len(leafcutter_list)} junctions from {args.junction_file}')
+
     # Function call for Output 1 tasks
-    leafcutter_list, snp_junctions = get_snp_junctions(args.moloc_snp_file, args.junction_file)
+    get_snp_junctions(snp_list, leafcutter_list)
 
     #Function call for Output 2 tasks
     # 1. Identify splice sites from GTF annotation file
-    extract_splice_sites_gtf(args.gtf_file)
+    ss_gtf = extract_splice_sites_gtf(args.gtf_file)
     # 2. Identify splice sites from Leafcutter sQTL junction file
-    extract_splice_sites_lc(leafcutter_list)
+    ss_lc = extract_splice_sites_lc(leafcutter_list)
     # 3. Identify if the colocalized SNP disrupts the splice site from GTF and LC
-    # snp_disrupts_splice_site()
+    snp_disrupts_splice_sites(snp_list, leafcutter_list, ss_lc, ss_gtf)
 if __name__ == '__main__':
     main()
 

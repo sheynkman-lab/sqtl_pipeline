@@ -3,6 +3,7 @@
 from collections import Counter, defaultdict
 from sys import stderr, exit
 import csv
+import pandas as pd
 
 
 def extract_splice_sites_gtf(gtf_file):
@@ -14,7 +15,7 @@ def extract_splice_sites_gtf(gtf_file):
         gtf_file (str): Path to the GTF annotation file.
 
     Returns:
-        None. Writes the annotated splice sites to a CSV file.
+        ss_gtf (pd.DataFrame): DataFrame containing annotated splice sites.
     """
 
     genes = defaultdict(list)
@@ -68,6 +69,7 @@ def extract_splice_sites_gtf(gtf_file):
 
     # Calculate and print the unique junctions and associated transcript IDs
     #TODO: Add sanity check for junctions/splicesites etc. etc.
+    ss = []
     junctions = {}
     for chrom, strand, exons in trans.values():
         for i in range(1, len(exons)):
@@ -75,64 +77,38 @@ def extract_splice_sites_gtf(gtf_file):
             transcript_id = [k for k, v in trans.items() if v == [chrom, strand, exons]][0]
             junctions.setdefault(junction, set()).add(transcript_id)
 
-    junctions = sorted(junctions.items())
-    with open(f'B_SNP_donor_acceptor_set/splice_sites_gtf.csv', mode='w', newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        
-        # Write the header row to the CSV file
-        writer.writerow(['splicesite_coord', 'strand', 'splicesite_category', 'matched_transcripts'])
-        
-        # Write each junction to the CSV file
-        for junction, transcript_ids in junctions:
-            chrom, left, right, strand = junction
-            left, right = left -1, right -1
-            if strand == '-':
-                donor2 = str(chrom) + '_' + str(left-2) 
-                donor1 = str(chrom) + '_' + str(left-1)
-                acceptor1 = str(chrom) + '_' + str(right+1)
-                acceptor2 = str(chrom) + '_' + str(right+2)
-            else:
-                donor1 = str(chrom) + '_' + str(left+1)
-                donor2 = str(chrom) + '_' + str(left+2)
-                acceptor1 = str(chrom) + '_' + str(right-2) 
-                acceptor2 = str(chrom) + '_' + str(right+1)
+    junctions = sorted(junctions.items())      
+    # Write each junction to the CSV file
+    for junction, transcript_ids in junctions:
+        chrom, left, right, strand = junction
 
-            writer.writerow([donor2, strand, 'donor2', ','.join(transcript_ids)])
-            writer.writerow([donor1, strand, 'donor1', None])
-            writer.writerow([acceptor1, strand, 'acceptor1', None])
-            writer.writerow([acceptor2, strand, 'acceptor2', None])
-        
-    # exon_lengths, intron_lengths, trans_lengths = \
-    #     Counter(), Counter(), Counter()
-    # for chrom, strand, exons in trans.values():
-    #     tran_len = 0
-    #     for i, exon in enumerate(exons):
-    #         exon_len = exon[1]-exon[0]+1
-    #         exon_lengths[exon_len] += 1
-    #         tran_len += exon_len
-    #         if i == 0:
-    #             continue
-    #         intron_lengths[exon[0] - exons[i-1][1]] += 1
-    #     trans_lengths[tran_len] += 1
+        # Coverting to 0-based coordinates
+        left, right = left -1, right -1
+        if strand == '-':
+            donor2 = str(chrom) + '_' + str(left-2) 
+            donor1 = str(chrom) + '_' + str(left-1)
+            acceptor1 = str(chrom) + '_' + str(right+1)
+            acceptor2 = str(chrom) + '_' + str(right+2)
+        else:
+            donor1 = str(chrom) + '_' + str(left+1)
+            donor2 = str(chrom) + '_' + str(left+2)
+            acceptor1 = str(chrom) + '_' + str(right-2) 
+            acceptor2 = str(chrom) + '_' + str(right+1)
+        ss.append([donor2, strand, 'donor2', ','.join(transcript_ids)])
+        ss.append([donor1, strand, 'donor1', None])
+        ss.append([acceptor1, strand, 'acceptor1', None])
+        ss.append([acceptor2, strand, 'acceptor2', None])
 
 
-    # print('genes: {}, genes with multiple isoforms: {}'.format(
-    #         len(genes), sum(len(v) > 1 for v in genes.values())),
-    #         file=stderr)
-    # print('transcripts: {}, transcript avg. length: {:.0f}'.format(
-    #         len(trans), sum(trans_lengths.elements())//len(trans)),
-    #         file=stderr)
-    # print('exons: {}, exon avg. length: {:.0f}'.format(
-    #         sum(exon_lengths.values()),
-    #         sum(exon_lengths.elements())//sum(exon_lengths.values())),
-    #         file=stderr)
-    # print('introns: {}, intron avg. length: {:.0f}'.format(
-    #         sum(intron_lengths.values()),
-    #         sum(intron_lengths.elements())//sum(intron_lengths.values())),
-    #         file=stderr)
-    # print('average number of exons per transcript: {:.0f}'.format(
-    #         sum(exon_lengths.values())//len(trans)),
-    #         file=stderr)
+    # Create a dataframe from the splice sites list
+    ss_gtf = pd.DataFrame(ss, columns=['splicesite_coord', 'strand', 'splicesite_category', 'matched_transcripts'])
+    
+    # Write the annotated splice sites to a CSV file
+    ss_gtf.to_csv(f'B_SNP_donor_acceptor_set/splice_sites_gtf.csv', index=False)
+    
+    # Return the dataframe
+    return ss_gtf
+
 
 
 def extract_splice_sites_lc(sqtl_list):
@@ -143,36 +119,67 @@ def extract_splice_sites_lc(sqtl_list):
         sqtl_list (list): List of dictionaries containing sQTL data.
 
     Returns:
-        None. Writes the annotated splice sites to a CSV file.
+        ss_lc (pd.DataFrame): DataFrame containing annotated splice sites.
     """
-    with open(f'B_SNP_donor_acceptor_set/splice_sites_lc.csv', mode='w', newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        
-        # Write the header row to the CSV file
-        writer.writerow(['splicesite_coord', 'strand', 'splicesite_category'])
-        
-        # Iterate over each row in the sqtl list
-        for row_dict in sqtl_list:
-            phenotype_id = row_dict['phenotype_id']
-            tss_distance = row_dict['tss_distance']
-            chrom, acceptor, donor, clu_strand = phenotype_id.split(':')
-            acceptor, donor = int(acceptor), int(donor)
-            cluster = clu_strand.split('_')[1]
-            strand = clu_strand.split('_')[2]
-            if strand == '-':
-                donor2 = 'chr' + str(chrom) + '_' + str(acceptor-2) 
-                donor1 = 'chr' + str(chrom) + '_' + str(acceptor-1)
-                acceptor1 = 'chr' + str(chrom) + '_' + str(donor+1)
-                acceptor2 = 'chr' + str(chrom) + '_' + str(donor+2)
-            else:
-                donor1 = 'chr' + str(chrom) + '_' + str(acceptor+1)
-                donor2 = 'chr' + str(chrom) + '_' + str(acceptor+2)
-                acceptor1 = 'chr' + str(chrom) + '_' + str(donor-2) 
-                acceptor2 = 'chr' + str(chrom) + '_' + str(donor+1)
-            writer.writerow([donor2, strand, 'donor2'])
-            writer.writerow([donor1, strand, 'donor1'])
-            writer.writerow([acceptor1, strand, 'acceptor1'])
-            writer.writerow([acceptor2, strand, 'acceptor2'])
+    # Create an empty list to store splice site information
+    splice_sites = []
+    
+    # Iterate over each row in the sqtl list
+    for row_dict in sqtl_list:
+        phenotype_id = row_dict['phenotype_id']
+        tss_distance = row_dict['tss_distance']
+        chrom, acceptor, donor, clu_strand = phenotype_id.split(':')
+        acceptor, donor = int(acceptor), int(donor)
 
-# def snp_disrupts_splice_sites():
-#     sdf
+        #TODO: Verify if coloc SNPs coords are 0-based or 1-based
+        acceptor, donor = acceptor +1, donor +1
+        cluster = clu_strand.split('_')[1]
+        strand = clu_strand.split('_')[2]
+        if strand == '-':
+            donor2 = 'chr' + str(chrom) + '_' + str(acceptor-2) 
+            donor1 = 'chr' + str(chrom) + '_' + str(acceptor-1)
+            acceptor1 = 'chr' + str(chrom) + '_' + str(donor+1)
+            acceptor2 = 'chr' + str(chrom) + '_' + str(donor+2)
+        else:
+            donor1 = 'chr' + str(chrom) + '_' + str(acceptor+1)
+            donor2 = 'chr' + str(chrom) + '_' + str(acceptor+2)
+            acceptor1 = 'chr' + str(chrom) + '_' + str(donor-2) 
+            acceptor2 = 'chr' + str(chrom) + '_' + str(donor+1)
+        splice_sites.append([phenotype_id, donor2, strand, 'donor2'])
+        splice_sites.append([None, donor1, strand, 'donor1'])
+        splice_sites.append([None, acceptor1, strand, 'acceptor1'])
+        splice_sites.append([None, acceptor2, strand, 'acceptor2'])
+        
+    # Create a dataframe from the splice sites list
+    ss_lc = pd.DataFrame(splice_sites, columns=['phenotype_id', 'splicesite_coord', 'strand', 'splicesite_category'])
+    
+    # Write the annotated splice sites to a CSV file
+    ss_lc.to_csv(f'B_SNP_donor_acceptor_set/splice_sites_lc.csv', index=False)
+    
+    # Return the dataframe
+    return ss_lc
+
+def snp_disrupts_splice_sites(snp_list, leafcutter_list, ss_lc, ss_gtf):
+
+    # Check if the coloc SNPs disrupt the splice sites annotated from LeafCutter sQTL data
+    snp_disrupts_ss = []
+    for snp in snp_list:
+        snp_coord = snp['best.snp.coloc'].split(":")[1]
+        # For mock data
+        snp_coord = 8809447
+        print(snp_coord)
+        for ss in ss_lc.itertuples():
+            ss_coord = ss.splicesite_coord.split("_")[1]
+            if int(ss_coord) == int(snp_coord):
+                snp_disrupts_ss.append([snp['best.snp.coloc'], snp['phenotype'], 'yes', ss.splicesite_coord, ss.splicesite_category])
+            else:
+                snp_disrupts_ss.append([snp['best.snp.coloc'], snp['phenotype'], '', ss.splicesite_coord, ss.splicesite_category])
+    # Create a dataframe from the splice sites list
+    df = pd.DataFrame(snp_disrupts_ss, columns=['SNP(variant_id)', 'Filtered junctions(phenotype_id)', 'disrupts splice site', 'splicesite_coord', 'splicesite_category'])
+    
+    # Write the annotated splice sites to a CSV file
+    df.to_csv(f'B_SNP_donor_acceptor_set/snp_disrupts_splice_sites.csv', index=False)
+    
+    # Return the dataframe
+    return df
+
