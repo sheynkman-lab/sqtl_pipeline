@@ -70,6 +70,6 @@ def get_snp_junctions(snp_list, leafcutter_list):
                     writer.writerow(['', phenotype_id, strand, pval_nominal, slope])
                     jx_set.append(['', phenotype_id, strand, pval_nominal, slope])
 
-    return jx_set
+    return snp_junctions
 
 					
