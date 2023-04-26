@@ -28,11 +28,10 @@ def main():
     # Read the LeafCutter sQTL file
     leafcutter_list = read_leafcutter_sQTL_file(args.junction_file)
     logging.info(f'Read {len(leafcutter_list)} junctions from {args.junction_file}')
-
+    
+    # from IPython import embed; embed() 
     # Function call for Output 1 tasks
-    jx_set = (snp_list, leafcutter_list)
-    print(len(jx_set))
-
+    jx_set = get_snp_junctions(snp_list, leafcutter_list)
     #Function call for Output 2 tasks
     # 1. Identify splice sites from GTF annotation file
     ss_gtf = extract_splice_sites_gtf(args.gtf_file)

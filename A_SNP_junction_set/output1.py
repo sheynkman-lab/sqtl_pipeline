@@ -21,12 +21,11 @@ def get_snp_junctions(snp_list, leafcutter_list):
 
     # Create a dictionary to store the junctions containing each SNP
     snp_junctions = {}
-
+    return_snp_junctions = {}
     # Iterate over the SNPs
     for snp in snp_list:
         snp_coord = snp['best.snp.coloc']
         snp_junctions[snp_coord] = []
-
         # Iterate over the LeafCutter sQTLs
         for sqtl in leafcutter_list:
             variant_id = sqtl['variant_id'].replace('chr', '')
@@ -36,8 +35,7 @@ def get_snp_junctions(snp_list, leafcutter_list):
                     'pval_nominal': sqtl['pval_nominal'],
                     'slope': sqtl['slope']
                 })
-
-    
+    return_snp_junctions = snp_junctions
     ## create the intermediate CSV file
     with open('A_SNP_junction_set/snp_junctions.csv', 'w', newline='') as f:
         writer = csv.writer(f)
@@ -46,14 +44,15 @@ def get_snp_junctions(snp_list, leafcutter_list):
         writer.writerow(['SNP (variant_id)', 'Filtered junctions (phenotype_id)', 'strand', 'pval_nominal', 'slope'])
         
         # initialize a flag for first row
-        first_row = True
+        
         jx_set = []
         # iterate through the dictionary and write rows
+        # TODO: @Will to add sanity checks to this for loop
         for snp_coord, junctions_info in snp_junctions.items():
             # split the SNP coordinate to get chromosome and position
             chrom, pos, ref, alt = snp_coord.split(':')
             variant_id = f"{chrom}:{pos}:{ref}:{alt}"
-            
+            first_row = True
             for i, junction_info in enumerate(junctions_info):
                 phenotype_id = junction_info['phenotype_id']
                 _, _, _, clu_strand = phenotype_id.split(':')
@@ -69,7 +68,6 @@ def get_snp_junctions(snp_list, leafcutter_list):
                 else:
                     writer.writerow(['', phenotype_id, strand, pval_nominal, slope])
                     jx_set.append(['', phenotype_id, strand, pval_nominal, slope])
-
-    return snp_junctions
+    return return_snp_junctions
 
 					

@@ -175,15 +175,12 @@ def snp_disrupts_splice_sites(snp_list, leafcutter_list, ss_lc, ss_gtf):
         snp_disrupts_ss (list): List of dictionaries containing sQTL data from LeafCutter.
     """
     
-    # Create an empty list to store splice site information
-    snp_disrupts_ss = []
     # Iterate over each row in the sqtl list
     snp_disrupts_ss = []
     for snp in snp_list:
         snp_coord = snp['best.snp.coloc'].split(":")[1]
         # For mock data simulation
         snp_coord = 8809447
-        print(snp_coord)
 
         # Check if the coloc SNPs disrupt the splice sites annotated from LeafCutter sQTL
         for ss in ss_lc.itertuples():
@@ -208,5 +205,5 @@ def snp_disrupts_splice_sites(snp_list, leafcutter_list, ss_lc, ss_gtf):
     df.to_csv(f'B_SNP_donor_acceptor_set/snp_disrupts_splice_sites.csv', index=False)
     
     # Return the dataframe
-    return df
+    return snp_disrupts_ss 
 
