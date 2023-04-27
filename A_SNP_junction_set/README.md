@@ -14,3 +14,4 @@ Steps
 
 Output
 This process produces a dictionary that defines the junction set for each SNP entered by the user. The key for the dictionary is the user entered SNPs while the values contain a list of dictionaries. Within each dictionary is the infromation from the leafcutter generated sQTL file.
+
