@@ -1,3 +1,5 @@
+# SNP Junction Set
+
 ## Input
 To determine the junction set for each SNP, this process requires the following inputs:
 1) Leafcutter sQTL results file: This file provides the sQTLs of interest, which contains the necessary junctions of interest. 
