@@ -31,7 +31,8 @@ def main():
     
     # from IPython import embed; embed() 
     # Function call for Output 1 tasks
-    jx_set = get_snp_junctions(snp_list, leafcutter_list)
+    snp_jx_tested, jx_set = get_snp_junctions(snp_list, leafcutter_list)
+
     #Function call for Output 2 tasks
     # 1. Identify splice sites from GTF annotation file
     ss_gtf = extract_splice_sites_gtf(args.gtf_file)
