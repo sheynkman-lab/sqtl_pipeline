@@ -72,9 +72,9 @@ for snp in snp_list:
 return_snp_junctions_tested = snp_junctions_tested
 return_junction_set = junction_set
 
-## create the intermediate CSV file
-with open('A_SNP_junction_set/snp_junctions_tested_only.csv', 'w', newline='') as f:
-    writer = csv.writer(f)
+## create the intermediate TSV file
+with open('A_SNP_junction_set/snp_junctions_tested_only.tsv', 'w', newline='') as f:
+    writer = csv.writer(f, delimiter='\t')
     # write the header row
     writer.writerow(['SNP (variant_id)', 'Filtered junctions (phenotype_id)', 'strand', 'pval_nominal', 'slope'])
     # initialize a flag for first row
@@ -103,9 +103,9 @@ with open('A_SNP_junction_set/snp_junctions_tested_only.csv', 'w', newline='') a
                 jx_set.append(['', phenotype_id, strand, pval_nominal, slope])
 
 
-## create the intermediate CSV file
-with open('A_SNP_junction_set/junction_set.csv', 'w', newline='') as f:
-    writer = csv.writer(f)
+## create the intermediate TSV file
+with open('A_SNP_junction_set/junction_set.tsv', 'w', newline='') as f:
+    writer = csv.writer(f, delimiter='\t')
     # write the header row
     writer.writerow(['SNP (variant_id)', 'Filtered junctions (phenotype_id)', 'strand', 'pval_nominal', 'slope'])
     # initialize a flag for first row
@@ -198,7 +198,7 @@ for chrom, strand, exons in trans.values():
         junctions.setdefault(junction, set()).add(transcript_id)
 
 junctions = sorted(junctions.items())      
-# Write each junction to the CSV file
+# Write each junction to the TSV file
 for junction, transcript_ids in junctions:
     chrom, left, right, strand = junction
     # Coverting to 0-based coordinates
@@ -222,8 +222,8 @@ for junction, transcript_ids in junctions:
 # Create a dataframe from the splice sites list
 ss_gtf = pd.DataFrame(ss, columns=['junction_coordinate', 'splicesite_coord', 'strand', 'splicesite_category', 'matched_transcripts'])
 
-# Write the annotated splice sites to a CSV file
-ss_gtf.to_csv(f'B_SNP_donor_acceptor_set/splice_sites_gtf.csv', index=False)
+# Write the annotated splice sites to a TSV file
+ss_gtf.to_csv(f'B_SNP_donor_acceptor_set/splice_sites_gtf.tsv', sep='\t', index=False))
 
 #%% 2. Extracts splice site information from a list of dictionaries containing sQTL data from LeafCutter.
 # Output: ss_lc (pd.DataFrame): DataFrame containing annotated splice sites.
@@ -261,8 +261,8 @@ for row_dict in sqtl_list:
 # Create a dataframe from the splice sites list
 ss_lc = pd.DataFrame(splice_sites, columns=['phenotype_id', 'junction_coordinate', 'splicesite_coord', 'strand', 'splicesite_category'])
 
-# Write the annotated splice sites to a CSV file
-ss_lc.to_csv(f'B_SNP_donor_acceptor_set/splice_sites_lc.csv', index=False)
+# Write the annotated splice sites to a TSV file
+ss_lc.to_csv(f'B_SNP_donor_acceptor_set/splice_sites_lc.tsv', sep='\t', index=False)
 
 #%% 3. Extracts splice site information from a list of dictionaries containing sQTL data from LeafCutter and GTF 
 # that are disrupted by the SNP.
@@ -294,12 +294,12 @@ for snp in snp_list:
 # Create a dataframe from the splice sites list
 df = pd.DataFrame(snp_disrupts_ss, columns=['SNP(variant_id)', 'Filtered junctions(phenotype_id)', 'source', 'disrupts splice site', 'splicesite_coord', 'splicesite_category', 'matched_transcripts'])
 
-# Write the annotated splice sites to a CSV file
-df.to_csv(f'B_SNP_donor_acceptor_set/snp_disrupts_splice_sites.csv', index=False)
+# Write the annotated splice sites to a TSV file
+df.to_csv(f'B_SNP_donor_acceptor_set/snp_disrupts_splice_sites.tsv', sep='\t', index=False))
 
 #%% Function call for Output 3 task
 
-output_file = 'output.csv'
+output_file = 'output.tsv'
 jx_items = set(item['phenotype_id'] for sublist in jx_set.values() for item in sublist)
 snp_items = set(snp_ss[i][1] for i in range(0, len(snp_ss), 4))
 overlap_items = jx_items.intersection(snp_items)
@@ -331,9 +331,9 @@ for key, value in jx_set.items():
                     }
                     table_rows.append(row)
 
-# Write the table to CSV file
+# Write the table to TSV file
 with open(output_file, 'w', newline='') as f:
-    writer = csv.DictWriter(f, fieldnames=['SNP(variant_id)', 'Filtered junctions(phenotype_id)', 'disrupts splice site', 'splicesite_coord', 'splicesite_category', 'matched_transcripts'])
+    writer = csv.DictWriter(f, fieldnames=['SNP(variant_id)', 'Filtered junctions(phenotype_id)', 'disrupts splice site', 'splicesite_coord', 'splicesite_category', 'matched_transcripts'], delimiter='\t')
     writer.writeheader()
     writer.writerows(table_rows)
 
